@@ -14,21 +14,56 @@ Clef returns **decisions rather than generated prose**:
 | Choice | A question and named answer options | Selected option, confidence, and probability for each option |
 | Score | A question and an ordered rubric | Probability-weighted score, confidence, and probability for each level |
 
-## Run and deploy
+## Deploy your own copy on Cloudflare
 
-Requires Node.js 22 or newer and a Cloudflare account with Workers AI access.
+You need Git, Node.js 22 or newer with npm, and a Cloudflare account with permission to deploy Workers and use Workers AI. Wrangler is installed with the project. The browser UI and API deploy together as one Worker; no database, frontend build, or separate web server is needed.
+
+### 1. Clone and install
 
 ```sh
 git clone https://github.com/sanjayws/systemonedemo.git
 cd systemonedemo
 npm ci
+```
+
+Fork the GitHub repository first if you want to keep your own changes, and clone your fork instead. To try the UI without a Cloudflare account, run `npm run preview`; see the offline preview section below.
+
+### 2. Connect your Cloudflare account
+
+```sh
 npx wrangler login
+npx wrangler whoami
+```
+
+Complete the browser login and confirm the intended account in `whoami`. If you have access to multiple accounts, add your account's `account_id` at the top level of `wrangler.jsonc`, or set `CLOUDFLARE_ACCOUNT_ID` in your deployment environment. The app uses an [AI binding](https://developers.cloudflare.com/workers-ai/configuration/bindings/); visitors do not need to enter an API key.
+
+### 3. Configure your deployment
+
+Edit `wrangler.jsonc` before publishing your copy:
+
+| Setting | What to do |
+| --- | --- |
+| `name` | Change `systemonedemo` to your own Worker name, such as `my-systemone-playground`. Deploying again with the same name updates that Worker. |
+| `account_id` | Add your Cloudflare account ID if needed to select the correct account. This is an identifier, not an API token. |
+| `workers_dev` | Keep `true` to publish on your account's `workers.dev` subdomain. |
+| `ai.binding` | Keep `AI`, which is the binding name used by the Worker. `remote: true` enables real inference during local development. |
+| `assets` | Keep `directory: "./web"`, `binding: "ASSETS"`, and `run_worker_first: true` so the UI, API routing, and response headers work together. |
+| `ratelimits[0].namespace_id` | Use a numeric string not already used by another rate limiter in your account unless you intentionally want shared counters. |
+
+The included `systemonedemo` configuration is for the [Ordinexis demo](https://systemonedemo.sanjay6326.workers.dev). Your account, Worker name, and deployment URL belong to your own copy. A fork can also update the repository links in `web/index.html` and the metadata in `package.json`.
+
+### 4. Test locally with live inference
+
+```sh
 npm run dev
 ```
 
-Open the local URL printed by Wrangler. Workers AI inference runs remotely through your account even during local development, and uses your account’s Workers AI allowance/billing. The app itself contains no client-side credentials. If your login can access multiple accounts, add the intended `account_id` to `wrangler.jsonc`, or set `CLOUDFLARE_ACCOUNT_ID` in your deployment environment.
+Open the local URL printed by Wrangler. Choose a text preset and click **Run decision**. Live results include the model name, probabilities, and measured response time. **View example output** is an illustration and does not verify model access.
 
-To deploy to your account’s `workers.dev` subdomain:
+Workers AI inference runs remotely through your account, including in local development, and consumes your Workers AI allowance/billing. This project self-hosts the application on your Cloudflare account; model inference uses Cloudflare's hosted Clef models. It does not include a local model server or model weights.
+
+### 5. Validate and publish
+
 
 ```sh
 npm run check
@@ -37,9 +72,29 @@ npm run build
 npm run deploy
 ```
 
-This repository targets the `systemonedemo` Worker at `https://systemonedemo.sanjay6326.workers.dev`. Wrangler prints the resulting URL. Change `name` in `wrangler.jsonc` before deploying a separate copy. `npm run build` is a deployment dry run; it does not publish anything. No database, API SDK, frontend framework, build pipeline, or external font service is required.
+`npm run build` is a dry run. `npm run deploy` uploads the Worker and the `web/` assets, applies the configured bindings, and prints your public URL, typically `https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev`. See Cloudflare's [workers.dev setup](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/) if your account does not have a subdomain yet.
+
+### 6. Verify and maintain your deployment
+
+Open the printed URL and run a preset on each model. You can also inspect the binding configuration:
+
+```sh
+curl https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev/api/config
+```
+
+`"mode":"live"` confirms the AI binding exists; a successful **Run decision** confirms inference access. To inspect safe application errors, run `npx wrangler tail` from the project directory and match the request reference shown in the UI.
+
+For updates, pull your repository changes, run `npm ci` if dependencies changed, rerun the checks above, and run `npm run deploy`. The same Worker URL is updated. The default deployment is public; its inference usage belongs to your Cloudflare account. Use Cloudflare Access or your own authentication if you need restricted access.
+
+### CI authentication and troubleshooting
 
 For CI, set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as secure environment variables. The token needs Workers deployment and Workers AI access for the target account. Do not put tokens in `web/`, commit them, or paste them into the playground.
+
+- **Login or deployment fails:** check `npx wrangler whoami`, your selected account, and deployment permissions. Retry `npx wrangler login` if the login expired.
+- **The UI works but inference fails:** verify Workers AI access and allowance in your Cloudflare account. Keep the `AI` binding and use the error reference/provider code to investigate.
+- **Images fail:** reload the current UI and attach them again so browser optimization runs. See the image/context limits below; direct API callers must optimize their own images.
+- **HTTP 429:** the playground permits 20 model evaluations per minute per IP; comparison uses two. Wait a minute before retrying.
+- **Only illustrative outputs work locally:** `npm run preview` intentionally has no AI binding. Use `npm run dev` after Cloudflare login for live evaluations.
 
 The `sharp` override pins Wrangler/Miniflare's development dependency to 0.35.5, which fixes [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w). Keep the override until the upstream dependency includes the fix, and rerun the dependency audit when updating Wrangler. The Worker has no runtime npm dependencies.
 
