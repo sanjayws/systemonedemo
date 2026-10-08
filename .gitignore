@@ -1,0 +1,12 @@
+node_modules/
+.wrangler/
+.build/
+.dev.vars*
+.env*
+!.dev.vars.example
+!.env.example
+.DS_Store
+coverage/
+*.log
+.aws/
+.codex/

@@ -1,0 +1,23 @@
+{
+  "name": "systemone-playground",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An open-source System One decision playground built by Ordinexis with Cloudflare Workers AI.",
+  "license": "MIT",
+  "author": "Ordinexis",
+  "repository": { "type": "git", "url": "git+https://github.com/sanjayws/systemonedemo.git" },
+  "homepage": "https://systemonedemo.sanjay6326.workers.dev",
+  "bugs": { "url": "https://github.com/sanjayws/systemonedemo/issues" },
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "wrangler dev",
+    "preview": "node scripts/preview.mjs",
+    "test": "node --test",
+    "check": "node scripts/check.mjs",
+    "build": "wrangler deploy --dry-run --outdir .build",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": { "wrangler": "4.148.0" },
+  "overrides": { "sharp": "0.35.5" }
+}

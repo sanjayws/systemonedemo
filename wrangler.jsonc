@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "systemonedemo",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-08",
+  "workers_dev": true,
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "assets": {
+    "directory": "./web",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "ai": { "binding": "AI", "remote": true },
+  "ratelimits": [{
+    "name": "PLAYGROUND_LIMITER",
+    "namespace_id": "1042026001",
+    "simple": { "limit": 20, "period": 60 }
+  }]
+}

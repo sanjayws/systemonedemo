@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore System One decision models with Cloudflare Clef. Bring your source, ask typed questions, and inspect probabilities. Built by Ordinexis.">
+  <meta name="author" content="Ordinexis">
+  <meta name="theme-color" content="#171a19">
+  <title>System One · Built by Ordinexis</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#source">Skip to playground</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="System One home · Built by Ordinexis"><span class="brand-mark" aria-hidden="true">S<span>1</span></span><span class="brand-wordmark"><span>SYSTEM<span class="brand-one">ONE</span></span><span class="builder-credit">Built by Ordinexis</span></span></a>
+    <span class="header-divider"></span><span class="header-label">Decision playground</span>
+    <div class="header-right"><span class="platform">Powered by Cloudflare Clef</span><button id="guide-open" class="quiet-button" type="button">How it works</button><a class="github-link" href="https://github.com/sanjayws/systemonedemo" target="_blank" rel="noopener noreferrer" aria-label="View the open-source System One repository on GitHub (opens in a new tab)"><span class="github-label">GitHub</span><span aria-hidden="true">↗</span></a></div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Test scenarios">
+      <div class="sidebar-heading"><span class="eyebrow">EXPLORE CAPABILITIES</span><span class="count">13</span></div>
+      <p class="sidebar-intro">Start with a scenario.<br>Make it your own.</p>
+      <label class="sr-only" for="category">Filter scenarios</label><select id="category"><option value="all">All scenarios</option><option>Language</option><option>Operations</option><option>Trust</option><option>Vision</option></select>
+      <nav id="scenarios" class="scenario-list" aria-label="Scenarios"></nav>
+      <button class="new-scenario" id="blank" type="button"><span aria-hidden="true">＋</span> Blank canvas</button>
+      <div class="sidebar-foot"><span class="mini-mark">A + B</span><p>Evidence in.<br>Decisions out.</p></div>
+    </aside>
+    <main id="main">
+      <div class="page-heading"><div><div class="eyebrow"><span id="scenario-category">LANGUAGE</span><span class="eyebrow-separator">/</span><span>EXPERIMENT <span id="scenario-code">01</span></span></div><h1 id="scenario-title">Answer from a source</h1><p id="scenario-description"></p></div><button id="reset" class="quiet-button reset-button" type="button">Reset scenario</button></div>
+      <div class="run-controls"><label for="model" class="sr-only">Model</label><select id="model"><option value="clef">Clef · 27B</option><option value="clef-flash">Clef Flash · 9B</option><option value="compare">Compare both models</option></select><button type="button" id="run" class="run-button"><span class="run-icon" aria-hidden="true">▶</span><span id="run-label">Run decision</span><span class="shortcut" aria-hidden="true">⌘ ↵</span></button><button id="cancel" type="button" class="quiet-button" hidden>Cancel</button></div>
+      <div class="workbench">
+        <section class="inputs" aria-label="Experiment inputs">
+          <section class="panel source-panel">
+            <div class="panel-heading"><div class="panel-label"><span class="letter">A</span><h2>Source content</h2></div><div class="source-switch"><button type="button" id="text-mode" aria-pressed="true">Text</button><button type="button" id="json-mode" aria-pressed="false">JSON</button></div></div>
+            <label class="sr-only" for="source">Content A: source evidence</label><textarea id="source" maxlength="32000" spellcheck="false" placeholder="Paste the evidence: a document, message, policy, or JSON record."></textarea>
+            <div class="source-footer"><div><button type="button" class="attach-button" id="attach"><span aria-hidden="true">＋</span> Attach images</button><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden aria-label="Attach images"><span class="image-hint">PNG, JPG, WebP</span></div><span id="char-count" class="mono">0 / 32,000</span></div>
+            <div id="images" class="image-list" aria-label="Attached images"></div>
+            <p id="image-note" class="field-hint" hidden></p>
+          </section>
+          <section class="panel question-panel">
+            <div class="panel-heading"><div class="panel-label"><span class="letter">B</span><h2>Questions & answers</h2></div><span id="question-count" class="subtle">1 question</span></div>
+            <div id="questions"></div>
+            <button type="button" id="add-question" class="add-question">＋ Add another question</button>
+          </section>
+          <div id="notice" class="notice" role="status" hidden></div>
+          <p class="privacy-note">Live runs send your inputs to Cloudflare Workers AI. This app does not store them.</p>
+        </section>
+        <section class="outputs" aria-label="Evaluation results">
+          <section class="panel result-panel">
+            <div class="panel-heading"><div class="panel-label"><span class="output-symbol" aria-hidden="true">≋</span><h2>Decision output</h2></div><span id="result-status" class="status-label">READY TO TEST</span></div>
+            <div id="results" aria-live="polite" aria-busy="false"></div>
+            <div class="result-actions"><button type="button" id="example" class="quiet-button">View example output</button><button type="button" id="export" class="quiet-button" disabled>Export JSON</button></div>
+            <details id="raw-details"><summary>Request & response JSON</summary><p class="raw-note">After a run, the request shows the inputs used for the displayed result. Image data is omitted here; exports include it.</p><div class="raw-tabs"><button type="button" id="raw-request" aria-pressed="true">Request</button><button type="button" id="raw-response" aria-pressed="false">Response</button><button type="button" id="copy-json">Copy</button></div><pre id="raw-json" tabindex="0"></pre></details>
+          </section>
+          <section class="try-card"><span class="eyebrow">TRY A VARIATION</span><p id="tip"></p></section>
+          <div class="format-key"><span><i class="format-dot choice"></i>Choose an option</span><span><i class="format-dot noul"></i>Yes / no</span><span><i class="format-dot score"></i>Score a rubric</span></div>
+        </section>
+      </div>
+      <footer class="main-footer"><span>Built by <strong>Ordinexis</strong></span><a href="https://developers.cloudflare.com/workers-ai/models/clef/" target="_blank" rel="noreferrer">Clef documentation ↗</a></footer>
+    </main>
+  </div>
+  <dialog id="guide" aria-labelledby="guide-title"><div class="dialog-top"><span class="eyebrow">A DIFFERENT KIND OF MODEL</span><button id="guide-close" type="button" class="quiet-button" aria-label="Close guide">✕</button></div><h2 id="guide-title">A decision, with a distribution.</h2><p>System One models evaluate evidence against a schema you define. Clef selects among your allowed answers and returns probabilities. It does not write an open-ended chat response.</p><ol><li><strong>Content A is the evidence.</strong> Paste text or JSON, or attach images.</li><li><strong>Content B defines the decision.</strong> Write a question, then select yes/no, answer options, or an ordered scoring rubric.</li><li><strong>Run and inspect.</strong> Compare answers, probability distributions, response time, and token use.</li></ol><p>A score is the probability-weighted average of levels starting at 0. Confidence expresses the model’s distribution, not a guarantee that its answer is correct. Add an “unknown” option when evidence could be missing.</p><p class="guide-note">Example outputs are hand-authored illustrations for preset inputs. They are not measured model results. Latency and token use appear only after a live run.</p></dialog>
+</body>
+</html>
